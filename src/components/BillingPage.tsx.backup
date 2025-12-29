@@ -1,0 +1,255 @@
+import React, { useState } from 'react';
+import { UserRole } from '../App';
+import { DollarSign, Download, FileText, Calendar } from 'lucide-react';
+
+interface BillingPageProps {
+  userRole: UserRole;
+  userId: string;
+}
+
+interface Bill {
+  id: string;
+  studentId: string;
+  studentName: string;
+  month: string;
+  totalMeals: number;
+  ratePerMeal: number;
+  totalAmount: number;
+  paid: boolean;
+}
+
+export function BillingPage({ userRole, userId }: BillingPageProps) {
+  const currentMonth = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  
+  const [bills, setBills] = useState<Bill[]>([
+    {
+      id: '1',
+      studentId: '1',
+      studentName: 'John Doe',
+      month: currentMonth,
+      totalMeals: 78,
+      ratePerMeal: 50,
+      totalAmount: 3900,
+      paid: false,
+    },
+    {
+      id: '2',
+      studentId: '101',
+      studentName: 'Alice Johnson',
+      month: currentMonth,
+      totalMeals: 85,
+      ratePerMeal: 50,
+      totalAmount: 4250,
+      paid: true,
+    },
+    {
+      id: '3',
+      studentId: '102',
+      studentName: 'Bob Williams',
+      month: currentMonth,
+      totalMeals: 92,
+      ratePerMeal: 50,
+      totalAmount: 4600,
+      paid: false,
+    },
+    {
+      id: '4',
+      studentId: '103',
+      studentName: 'Emma Davis',
+      month: currentMonth,
+      totalMeals: 88,
+      ratePerMeal: 50,
+      totalAmount: 4400,
+      paid: true,
+    },
+  ]);
+
+  const handleGenerateBills = () => {
+    alert('Bills generated successfully for all students!');
+  };
+
+  const handleDownloadBill = (billId: string) => {
+    alert(`Downloading bill ${billId}...`);
+  };
+
+  if (userRole === 'student') {
+    const studentBill = bills.find((b) => b.studentId === userId);
+
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            My Bills
+          </h1>
+          <p className="text-gray-600">View your outstanding bills</p>
+        </div>
+
+        {studentBill && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4 flex items-center gap-3">
+              <FileText className="w-6 h-6 text-white" />
+              <div>
+                <h2 className="text-xl text-white">Current Month Bill</h2>
+                <p className="text-sm text-blue-100">{studentBill.month}</p>
+              </div>
+            </div>
+
+            <div className="p-8">
+              <div className="grid md:grid-cols-2 gap-6 mb-8">
+                <div className="p-6 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl border border-blue-100">
+                  <p className="text-sm text-gray-600 mb-1">Total Meals</p>
+                  <p className="text-3xl text-blue-600">{studentBill.totalMeals}</p>
+                </div>
+                <div className="p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-100">
+                  <p className="text-sm text-gray-600 mb-1">Rate per Meal</p>
+                  <p className="text-3xl text-purple-600">₹{studentBill.ratePerMeal}</p>
+                </div>
+              </div>
+
+              <div className="border-t border-gray-200 pt-6">
+                <div className="flex items-center justify-between mb-6">
+                  <span className="text-xl text-gray-700">Total Amount</span>
+                  <span className="text-3xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    ₹{studentBill.totalAmount}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <div
+                    className={`px-4 py-2 rounded-lg ${
+                      studentBill.paid
+                        ? 'bg-green-100 text-green-700 border border-green-200'
+                        : 'bg-red-100 text-red-700 border border-red-200'
+                    }`}
+                  >
+                    {studentBill.paid ? 'Paid' : 'Unpaid'}
+                  </div>
+                  <button
+                    onClick={() => handleDownloadBill(studentBill.id)}
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all"
+                  >
+                    <Download className="w-4 h-4" />
+                    Download Invoice
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Admin view
+  return (
+    <div className="max-w-7xl mx-auto">
+      <div className="mb-8 flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h1 className="text-3xl mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Billing Management
+          </h1>
+          <p className="text-gray-600">Generate and manage student bills</p>
+        </div>
+        <button
+          onClick={handleGenerateBills}
+          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-md"
+        >
+          <DollarSign className="w-4 h-4" />
+          Generate Bills
+        </button>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <FileText className="w-5 h-5 text-blue-600" />
+            </div>
+            <span className="text-sm text-gray-600">Total Bills</span>
+          </div>
+          <p className="text-2xl text-gray-900">{bills.length}</p>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+              <DollarSign className="w-5 h-5 text-green-600" />
+            </div>
+            <span className="text-sm text-gray-600">Total Revenue</span>
+          </div>
+          <p className="text-2xl text-gray-900">
+            ₹{bills.reduce((sum, bill) => sum + bill.totalAmount, 0).toLocaleString()}
+          </p>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+              <Calendar className="w-5 h-5 text-red-600" />
+            </div>
+            <span className="text-sm text-gray-600">Pending Payments</span>
+          </div>
+          <p className="text-2xl text-gray-900">{bills.filter((b) => !b.paid).length}</p>
+        </div>
+      </div>
+
+      {/* Bills Table */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-4 text-left text-sm text-gray-700">Student Name</th>
+                <th className="px-6 py-4 text-center text-sm text-gray-700">Month</th>
+                <th className="px-6 py-4 text-center text-sm text-gray-700">Total Meals</th>
+                <th className="px-6 py-4 text-center text-sm text-gray-700">Rate/Meal</th>
+                <th className="px-6 py-4 text-center text-sm text-gray-700">Total Amount</th>
+                <th className="px-6 py-4 text-center text-sm text-gray-700">Status</th>
+                <th className="px-6 py-4 text-center text-sm text-gray-700">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {bills.map((bill) => (
+                <tr key={bill.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-sm">
+                        {bill.studentName.charAt(0)}
+                      </div>
+                      <span>{bill.studentName}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-center text-sm text-gray-600">{bill.month}</td>
+                  <td className="px-6 py-4 text-center">{bill.totalMeals}</td>
+                  <td className="px-6 py-4 text-center">₹{bill.ratePerMeal}</td>
+                  <td className="px-6 py-4 text-center">₹{bill.totalAmount}</td>
+                  <td className="px-6 py-4 text-center">
+                    <span
+                      className={`inline-block px-3 py-1 rounded-full text-xs ${
+                        bill.paid
+                          ? 'bg-green-100 text-green-700 border border-green-200'
+                          : 'bg-red-100 text-red-700 border border-red-200'
+                      }`}
+                    >
+                      {bill.paid ? 'Paid' : 'Unpaid'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <button
+                      onClick={() => handleDownloadBill(bill.id)}
+                      className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-sm"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      Download
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
