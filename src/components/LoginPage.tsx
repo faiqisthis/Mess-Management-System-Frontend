@@ -84,10 +84,7 @@ export function LoginPage() {
               </button>
             </div>
 
-            <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-              <p className="text-xs text-gray-600 mb-2">Connect to backend at: http://localhost:5000</p>
-              <p className="text-xs text-gray-700">Make sure your ASP.NET Core backend is running.</p>
-            </div>
+            {/* Removed extra informational footer text for cleaner login UI */}
           </form>
         </div>
       </div>

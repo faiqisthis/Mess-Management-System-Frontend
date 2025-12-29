@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import axios from 'axios';
 
 interface User {
   userId: number;
@@ -37,35 +38,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const login = async (email: string, password: string) => {
-    const response = await fetch('http://localhost:5000/api/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+    
+    try {
+      const { data } = await axios.post(`${API_BASE_URL}/auth/login`, {
+        email,
+        password,
+      });
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Login failed' }));
-      throw new Error(error.message || 'Invalid email or password');
+      // Store token and user info
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify({
+        userId: data.userId,
+        email: data.email,
+        role: data.role,
+      }));
+
+      setToken(data.token);
+      setUser({
+        userId: data.userId,
+        email: data.email,
+        role: data.role,
+      });
+    } catch (error: any) {
+      const message = error.response?.data?.message || error.message || 'Invalid email or password';
+      throw new Error(message);
     }
-
-    const data = await response.json();
-
-    // Store token and user info
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('user', JSON.stringify({
-      userId: data.userId,
-      email: data.email,
-      role: data.role,
-    }));
-
-    setToken(data.token);
-    setUser({
-      userId: data.userId,
-      email: data.email,
-      role: data.role,
-    });
   };
 
   const logout = () => {
