@@ -30,10 +30,10 @@ export function BillingPage({ userRole, userId }: BillingPageProps) {
       setIsLoading(true);
       setError(null);
 
-      if (userRole === 'Student') {
-        // Load student's bills
-        const studentBills = await billingService.getUserBills(parseInt(userId));
-        setBills(studentBills);
+      if (userRole === 'Student' || userRole === 'Teacher') {
+        // Load student's or teacher's own bills
+        const userBills = await billingService.getUserBills(parseInt(userId));
+        setBills(userBills);
       } else if (userRole === 'Admin') {
         // Load all bills and users for admin only
         const [allBills, allUsers] = await Promise.all([
@@ -41,11 +41,7 @@ export function BillingPage({ userRole, userId }: BillingPageProps) {
           userService.getAllUsers(),
         ]);
         setBills(allBills);
-        setUsers(allUsers.filter(u => u.role === 0)); // Students only
-      } else {
-        // Teachers don't have access to billing
-        setError('You do not have permission to view billing information');
-        return;
+        setUsers(allUsers.filter(u => u.role === 0)); // Students only for bill generation
       }
     } catch (err: any) {
       console.error('Error loading billing data:', err);
@@ -112,27 +108,8 @@ export function BillingPage({ userRole, userId }: BillingPageProps) {
     );
   }
 
-  // Teacher view - no access
-  if (userRole === 'Teacher') {
-    return (
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Billing
-          </h1>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-          <XCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-          <h3 className="text-xl text-gray-900 mb-2">Access Restricted</h3>
-          <p className="text-gray-600">Teachers do not have access to billing information.</p>
-          <p className="text-sm text-gray-500 mt-2">Only students can view their bills and admins can manage billing.</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Student view
-  if (userRole === 'Student') {
+  // Student/Teacher view - their own bills
+  if (userRole === 'Student' || userRole === 'Teacher') {
     return (
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
@@ -140,6 +117,9 @@ export function BillingPage({ userRole, userId }: BillingPageProps) {
             My Bills
           </h1>
           <p className="text-gray-600">View your monthly bills and payment status</p>
+          {userRole === 'Teacher' && bills.length > 0 && (
+            <p className="text-sm text-blue-600 mt-2">Note: Only administrators can generate new bills.</p>
+          )}
         </div>
 
         {error && (
