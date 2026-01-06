@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Save, X, Calendar } from 'lucide-react';
 import { menuService, DailyMenu, Meal } from '../services/menuService';
+import toast from 'react-hot-toast';
 
 export function AdminMenuManagement() {
   const [menus, setMenus] = useState<DailyMenu[]>([]);
@@ -48,7 +49,7 @@ export function AdminMenuManagement() {
 
   const handleAddMeal = () => {
     if (!mealForm.name || mealForm.price <= 0) {
-      alert('Please fill meal name and price');
+      toast.error('Please fill meal name and price');
       return;
     }
 
@@ -69,7 +70,7 @@ export function AdminMenuManagement() {
 
   const handleSaveMenu = async () => {
     if (!formData.date || formData.meals.length === 0) {
-      alert('Please select a date and add at least one meal');
+      toast.error('Please select a date and add at least one meal');
       return;
     }
 
@@ -81,21 +82,21 @@ export function AdminMenuManagement() {
           meals: formData.meals,
           dailyFixedCharge: formData.dailyFixedCharge,
         });
-        alert('Menu updated successfully!');
+        toast.success('Menu updated successfully!');
       } else {
         await menuService.createMenu({
           date: formData.date,
           meals: formData.meals,
           dailyFixedCharge: formData.dailyFixedCharge,
         });
-        alert('Menu created successfully!');
+        toast.success('Menu created successfully!');
       }
 
       resetForm();
       await loadMenus();
     } catch (err: any) {
       console.error('Error saving menu:', err);
-      alert('Failed to save menu: ' + err.message);
+      toast.error('Failed to save menu: ' + err.message);
     } finally {
       setIsSaving(false);
     }
@@ -116,11 +117,11 @@ export function AdminMenuManagement() {
 
     try {
       await menuService.deleteMenu(id);
-      alert('Menu deleted successfully!');
+      toast.success('Menu deleted successfully!');
       await loadMenus();
     } catch (err: any) {
       console.error('Error deleting menu:', err);
-      alert('Failed to delete menu: ' + err.message);
+      toast.error('Failed to delete menu: ' + err.message);
     }
   };
 

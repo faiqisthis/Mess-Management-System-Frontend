@@ -251,10 +251,15 @@ export function AttendancePage({ userRole, userId }: AttendancePageProps) {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
               <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
                 <h2 className="text-xl text-white">Daily Attendance & Costs</h2>
-                <p className="text-sm text-blue-100">{studentSummary.monthName}</p>
+                <p className="text-sm text-blue-100">{studentSummary.monthName} (1st - {new Date().getDate()}th)</p>
               </div>
               <div className="p-6 max-h-96 overflow-y-auto">
-                {studentSummary.dailySummaries?.map((day) => (
+                {studentSummary.dailySummaries?.filter((day) => {
+                  const dayDate = new Date(day.date);
+                  const currentDate = new Date();
+                  const firstOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+                  return dayDate >= firstOfMonth && dayDate <= currentDate;
+                }).map((day) => (
                   <div key={day.date} className="border-b border-gray-200 last:border-0 py-3">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-3">
@@ -367,10 +372,15 @@ export function AttendancePage({ userRole, userId }: AttendancePageProps) {
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                   <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
                     <h2 className="text-xl text-white">Daily Attendance & Costs</h2>
-                    <p className="text-sm text-blue-100">{teacherSummary.monthName}</p>
+                    <p className="text-sm text-blue-100">{teacherSummary.monthName} (1st - {new Date().getDate()}th)</p>
                   </div>
                   <div className="p-6 max-h-96 overflow-y-auto">
-                    {teacherSummary.dailySummaries?.map((day) => (
+                    {teacherSummary.dailySummaries?.filter((day) => {
+                      const dayDate = new Date(day.date);
+                      const currentDate = new Date();
+                      const firstOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+                      return dayDate >= firstOfMonth && dayDate <= currentDate;
+                    }).map((day) => (
                       <div key={day.date} className="border-b border-gray-200 last:border-0 py-3">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-3">

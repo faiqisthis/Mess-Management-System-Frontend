@@ -4,6 +4,7 @@ import { DollarSign, Download, FileText, Calendar, CheckCircle, XCircle, Users }
 import { billingService, Bill } from '../services/billingService';
 import { userService, User } from '../services/userService';
 import { useAuth } from '../contexts/AuthContext';
+import toast from 'react-hot-toast';
 
 interface BillingPageProps {
   userRole: UserRole;
@@ -53,7 +54,7 @@ export function BillingPage({ userRole, userId }: BillingPageProps) {
 
   const handleGenerateBill = async () => {
     if (!selectedUser) {
-      alert('Please select a student');
+      toast.error('Please select a student');
       return;
     }
 
@@ -64,11 +65,11 @@ export function BillingPage({ userRole, userId }: BillingPageProps) {
         year: selectedYear,
         month: selectedMonth + 1, // API expects 1-12, but we store 0-11
       });
-      alert('Bill generated successfully!');
+      toast.success('Bill generated successfully!');
       await loadData();
     } catch (err: any) {
       console.error('Error generating bill:', err);
-      alert('Failed to generate bill: ' + err.message);
+      toast.error('Failed to generate bill: ' + err.message);
     } finally {
       setIsGenerating(false);
     }
@@ -77,11 +78,11 @@ export function BillingPage({ userRole, userId }: BillingPageProps) {
   const handleMarkAsPaid = async (billId: number) => {
     try {
       await billingService.markBillAsPaid(billId);
-      alert('Bill marked as paid!');
+      toast.success('Bill marked as paid!');
       await loadData();
     } catch (err: any) {
       console.error('Error marking bill as paid:', err);
-      alert('Failed to mark bill as paid: ' + err.message);
+      toast.error('Failed to mark bill as paid: ' + err.message);
     }
   };
 
@@ -90,11 +91,11 @@ export function BillingPage({ userRole, userId }: BillingPageProps) {
 
     try {
       await billingService.deleteBill(billId);
-      alert('Bill deleted successfully!');
+      toast.success('Bill deleted successfully!');
       await loadData();
     } catch (err: any) {
       console.error('Error deleting bill:', err);
-      alert('Failed to delete bill: ' + err.message);
+      toast.error('Failed to delete bill: ' + err.message);
     }
   };
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Save, X, UserPlus } from 'lucide-react';
 import { userService, User as BackendUser } from '../services/userService';
+import toast from 'react-hot-toast';
 
 export function UserManagement() {
   const [users, setUsers] = useState<BackendUser[]>([]);
@@ -40,7 +41,7 @@ export function UserManagement() {
 
   const handleAddUser = async () => {
     if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.email.trim() || !formData.password.trim()) {
-      alert('Please fill all required fields (including password)');
+      toast.error('Please fill all required fields (including password)');
       return;
     }
 
@@ -58,10 +59,10 @@ export function UserManagement() {
       });
       resetForm();
       await loadUsers();
-      alert('User created successfully!');
+      toast.success('User created successfully!');
     } catch (err: any) {
       console.error('Error creating user:', err);
-      alert('Failed to create user: ' + err.message);
+      toast.error('Failed to create user: ' + err.message);
     } finally {
       setIsSaving(false);
     }
@@ -83,7 +84,7 @@ export function UserManagement() {
 
   const handleUpdateUser = async () => {
     if (!editingId || !formData.firstName || !formData.lastName || !formData.email) {
-      alert('Please fill all required fields');
+      toast.error('Please fill all required fields');
       return;
     }
 
@@ -100,10 +101,10 @@ export function UserManagement() {
       });
       resetForm();
       await loadUsers();
-      alert('User updated successfully!');
+      toast.success('User updated successfully!');
     } catch (err: any) {
       console.error('Error updating user:', err);
-      alert('Failed to update user: ' + err.message);
+      toast.error('Failed to update user: ' + err.message);
     } finally {
       setIsSaving(false);
     }
@@ -115,10 +116,10 @@ export function UserManagement() {
     try {
       await userService.deleteUser(id);
       await loadUsers();
-      alert('User deleted successfully!');
+      toast.success('User deleted successfully!');
     } catch (err: any) {
       console.error('Error deleting user:', err);
-      alert('Failed to delete user: ' + err.message);
+      toast.error('Failed to delete user: ' + err.message);
     }
   };
 
