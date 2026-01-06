@@ -48,8 +48,12 @@ export function AdminMenuManagement() {
   };
 
   const handleAddMeal = () => {
-    if (!mealForm.name || mealForm.price <= 0) {
-      toast.error('Please fill meal name and price');
+    if (!mealForm.name.trim()) {
+      toast.error('Meal name is required');
+      return;
+    }
+    if (mealForm.price <= 0) {
+      toast.error('Meal price must be greater than 0');
       return;
     }
 
@@ -69,8 +73,16 @@ export function AdminMenuManagement() {
   };
 
   const handleSaveMenu = async () => {
-    if (!formData.date || formData.meals.length === 0) {
-      toast.error('Please select a date and add at least one meal');
+    if (!formData.date) {
+      toast.error('Date is required');
+      return;
+    }
+    if (formData.meals.length === 0) {
+      toast.error('Please add at least one meal');
+      return;
+    }
+    if (formData.dailyFixedCharge < 0) {
+      toast.error('Daily fixed charge cannot be negative');
       return;
     }
 
@@ -193,6 +205,7 @@ export function AdminMenuManagement() {
                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 disabled={isSaving || !!editingId}
+                required
               />
             </div>
             <div>
@@ -204,6 +217,7 @@ export function AdminMenuManagement() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 min="0"
                 disabled={isSaving}
+                required
               />
             </div>
           </div>

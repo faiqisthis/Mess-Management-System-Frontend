@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { LogIn } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
@@ -12,12 +13,30 @@ export function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    
+    // Validation
+    if (!email.trim()) {
+      const errorMsg = 'Email is required';
+      setError(errorMsg);
+      toast.error(errorMsg);
+      return;
+    }
+    if (!password) {
+      const errorMsg = 'Password is required';
+      setError(errorMsg);
+      toast.error(errorMsg);
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
       await login(email, password);
+      toast.success('Login successful!');
     } catch (err: any) {
-      setError(err.message || 'Invalid email or password');
+      const errorMsg = err.message || 'Invalid email or password';
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setIsLoading(false);
     }

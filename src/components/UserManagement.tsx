@@ -40,18 +40,35 @@ export function UserManagement() {
   };
 
   const handleAddUser = async () => {
-    if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.email.trim() || !formData.password.trim()) {
-      toast.error('Please fill all required fields (including password)');
+    // Validate required fields
+    if (!formData.firstName.trim()) {
+      toast.error('First name is required');
+      return;
+    }
+    if (!formData.lastName.trim()) {
+      toast.error('Last name is required');
+      return;
+    }
+    if (!formData.email.trim()) {
+      toast.error('Email is required');
+      return;
+    }
+    if (!formData.password || !formData.password.trim()) {
+      toast.error('Password is required');
+      return;
+    }
+    if (formData.password.trim().length < 6) {
+      toast.error('Password must be at least 6 characters');
       return;
     }
 
     try {
       setIsSaving(true);
       await userService.createUser({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        password: formData.password,
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: formData.email.trim(),
+        password: formData.password.trim(),
         role: formData.role,
         rollNumber: formData.rollNumber || undefined,
         roomNumber: formData.roomNumber || undefined,
@@ -197,6 +214,7 @@ export function UserManagement() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 placeholder="e.g., John"
                 disabled={isSaving}
+                required
               />
             </div>
             <div>
@@ -208,6 +226,7 @@ export function UserManagement() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 placeholder="e.g., Doe"
                 disabled={isSaving}
+                required
               />
             </div>
             <div>
@@ -219,6 +238,7 @@ export function UserManagement() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 placeholder="e.g., john@example.com"
                 disabled={isSaving}
+                required
               />
             </div>
             {!editingId && (
@@ -229,8 +249,11 @@ export function UserManagement() {
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                  placeholder="Enter password"
+                  placeholder="Enter password (minimum 6 characters)"
                   disabled={isSaving}
+                  autoComplete="new-password"
+                  required
+                  minLength={6}
                 />
               </div>
             )}

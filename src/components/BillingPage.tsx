@@ -42,7 +42,7 @@ export function BillingPage({ userRole, userId }: BillingPageProps) {
           userService.getAllUsers(),
         ]);
         setBills(allBills);
-        setUsers(allUsers.filter(u => u.role === 0)); // Students only for bill generation
+        setUsers(allUsers.filter(u => u.role === 0 || u.role === 1)); // Students and Teachers
       }
     } catch (err: any) {
       console.error('Error loading billing data:', err);
@@ -54,7 +54,11 @@ export function BillingPage({ userRole, userId }: BillingPageProps) {
 
   const handleGenerateBill = async () => {
     if (!selectedUser) {
-      toast.error('Please select a student');
+      toast.error('Please select a user');
+      return;
+    }
+    if (!selectedYear || selectedYear < 2000 || selectedYear > 2100) {
+      toast.error('Please enter a valid year');
       return;
     }
 
@@ -96,6 +100,42 @@ export function BillingPage({ userRole, userId }: BillingPageProps) {
     } catch (err: any) {
       console.error('Error deleting bill:', err);
       toast.error('Failed to delete bill: ' + err.message);
+    }
+  };
+
+  const handleGenerateBulkBills = async () => {
+    if (!confirm(`Are you sure you want to generate bills for all ${users.length} users (students and teachers) for ${new Date(selectedYear, selectedMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}?`)) return;
+
+    try {
+      setIsGenerating(true);
+      let successCount = 0;
+      let failCount = 0;
+      
+      for (const user of users) {
+        try {
+          await billingService.generateBill({
+            userId: user.id,
+            year: selectedYear,
+            month: selectedMonth + 1,
+          });
+          successCount++;
+        } catch (err) {
+          console.error(`Failed to generate bill for user ${user.id}:`, err);
+          failCount++;
+        }
+      }
+      
+      if (failCount === 0) {
+        toast.success(`Successfully generated ${successCount} bills!`);
+      } else {
+        toast.success(`Generated ${successCount} bills. ${failCount} failed.`);
+      }
+      await loadData();
+    } catch (err: any) {
+      console.error('Error generating bulk bills:', err);
+      toast.error('Failed to generate bulk bills: ' + err.message);
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -212,19 +252,30 @@ export function BillingPage({ userRole, userId }: BillingPageProps) {
 
       {/* Generate Bill Section */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-        <h2 className="text-lg font-semibold mb-4">Generate New Bill</h2>
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 mb-4">
+          <h2 className="text-lg font-semibold">Generate New Bill</h2>
+          <button
+            onClick={handleGenerateBulkBills}
+            disabled={isGenerating || users.length === 0}
+            className={`px-6 py-2.5 border-2 border-green-700 bg-green-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all shadow-md font-medium cursor-pointer disabled:cursor-not-allowed ${isGenerating || users.length === 0 ? 'bg-gray-300 text-gray-500 border-gray-400' : ''}`}
+            style={{ minWidth: 180, minHeight: 44 }}
+            title={users.length === 0 ? 'No users available' : `Generate bills for all ${users.length} users`}
+          >
+            {isGenerating ? 'Generating...' : `Generate for All`}
+          </button>
+        </div>
         <div className="grid md:grid-cols-4 gap-4">
           <div>
-            <label className="block text-sm mb-2 text-gray-700">Student</label>
+            <label className="block text-sm mb-2 text-gray-700">User</label>
             <select
               value={selectedUser || ''}
               onChange={(e) => setSelectedUser(parseInt(e.target.value))}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer"
             >
-              <option value="">Select Student</option>
+              <option value="">Select User</option>
               {users.map((user) => (
                 <option key={user.id} value={user.id}>
-                  {user.firstName} {user.lastName}
+                  {user.firstName} {user.lastName} ({user.role === 0 ? 'Student' : 'Teacher'})
                 </option>
               ))}
             </select>
@@ -235,7 +286,7 @@ export function BillingPage({ userRole, userId }: BillingPageProps) {
               type="number"
               value={selectedYear}
               onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer"
             />
           </div>
           <div>
@@ -243,7 +294,7 @@ export function BillingPage({ userRole, userId }: BillingPageProps) {
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer"
             >
               {Array.from({ length: 12 }, (_, i) => (
                 <option key={i} value={i}>
@@ -357,14 +408,14 @@ export function BillingPage({ userRole, userId }: BillingPageProps) {
                       {!bill.isPaid && (
                         <button
                           onClick={() => handleMarkAsPaid(bill.id)}
-                          className="px-3 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors text-xs"
+                          className="px-3 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors text-xs cursor-pointer"
                         >
                           Mark Paid
                         </button>
                       )}
                       <button
                         onClick={() => handleDeleteBill(bill.id)}
-                        className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors text-xs"
+                        className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors text-xs cursor-pointer"
                       >
                         Delete
                       </button>
