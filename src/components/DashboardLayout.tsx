@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { User } from '../App';
-import { Menu, X, Home, Calendar, DollarSign, Users, LogOut, Settings, Utensils } from 'lucide-react';
+import { Menu, X, Calendar, DollarSign, Users, LogOut, Settings, Utensils } from 'lucide-react';
+import { useApp } from '../contexts/AppContext';
 
 interface DashboardLayoutProps {
   currentUser: User;
@@ -11,20 +12,21 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ currentUser, currentPage, onNavigate, onLogout, children }: DashboardLayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { sidebarOpen, setSidebarOpen, toggleSidebar } = useApp();
 
   const menuItems = [
-    { id: 'menu', label: 'Menu', icon: Utensils, roles: ['student', 'teacher', 'admin'] },
-    { id: 'attendance', label: 'Attendance', icon: Calendar, roles: ['student', 'teacher', 'admin'] },
-    { id: 'billing', label: 'Billing', icon: DollarSign, roles: ['student', 'teacher', 'admin'] },
-    { id: 'admin-menu', label: 'Menu Management', icon: Settings, roles: ['admin'] },
-    { id: 'users', label: 'User Management', icon: Users, roles: ['admin'] },
+    { id: 'menu', label: 'Menu', icon: Utensils, roles: ['Student', 'Teacher', 'Admin'] },
+    { id: 'attendance', label: 'Attendance', icon: Calendar, roles: ['Student', 'Teacher', 'Admin'] },
+    { id: 'billing', label: 'Billing', icon: DollarSign, roles: ['Student', 'Teacher', 'Admin'] },
+    { id: 'admin-menu', label: 'Menu Management', icon: Settings, roles: ['Admin'] },
+    { id: 'users', label: 'User Management', icon: Users, roles: ['Admin'] },
   ];
 
   const visibleMenuItems = menuItems.filter(item => item.roles.includes(currentUser.role));
 
   const getRoleBadgeColor = (role: string) => {
-    switch (role) {
+    const normalizedRole = role.toLowerCase();
+    switch (normalizedRole) {
       case 'admin':
         return 'bg-purple-100 text-purple-700 border-purple-200';
       case 'teacher':
@@ -41,8 +43,8 @@ export function DashboardLayout({ currentUser, currentPage, onNavigate, onLogout
       {/* Mobile Header */}
       <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-20">
         <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          onClick={toggleSidebar}
+          className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
         >
           {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
@@ -87,11 +89,8 @@ export function DashboardLayout({ currentUser, currentPage, onNavigate, onLogout
             return (
               <button
                 key={item.id}
-                onClick={() => {
-                  onNavigate(item.id);
-                  setSidebarOpen(false);
-                }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                onClick={() => onNavigate(item.id)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all cursor-pointer ${
                   isActive
                     ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
                     : 'hover:bg-gray-100 text-gray-700'
@@ -107,7 +106,7 @@ export function DashboardLayout({ currentUser, currentPage, onNavigate, onLogout
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
           <button
             onClick={onLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-50 text-red-600 transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-50 text-red-600 transition-colors cursor-pointer"
           >
             <LogOut className="w-5 h-5" />
             <span>Logout</span>

@@ -51,7 +51,20 @@ export interface DailySummary {
   menuAvailable: boolean;
 }
 
+export interface StudentInfo {
+  id: number;
+  firstName: string;
+  lastName: string;
+  rollNumber?: string;
+  roomNumber?: string;
+}
+
 export const attendanceService = {
+  // Get all active students (for teachers and admins to mark attendance)
+  getStudents: async (): Promise<StudentInfo[]> => {
+    return apiClient.get<StudentInfo[]>('/attendance/students');
+  },
+
   // Mark single attendance
   markAttendance: async (attendance: AttendanceDto): Promise<Attendance> => {
     return apiClient.post<Attendance>('/attendance', attendance);

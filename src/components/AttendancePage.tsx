@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { UserRole } from '../App';
 import { Calendar, Check, X, Users, TrendingUp } from 'lucide-react';
-import { attendanceService, AttendanceSummary } from '../services/attendanceService';
+import { attendanceService, AttendanceSummary, StudentInfo } from '../services/attendanceService';
 import { userService, User } from '../services/userService';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -15,7 +15,9 @@ export function AttendancePage({ userRole, userId }: AttendancePageProps) {
   const today = new Date().toISOString().split('T')[0];
   
   const [selectedDate, setSelectedDate] = useState(today);
+  const [maxDate] = useState(today); // Prevent future dates
   const [users, setUsers] = useState<User[]>([]);
+  const [students, setStudents] = useState<StudentInfo[]>([]);
   const [attendanceData, setAttendanceData] = useState<any[]>([]);
   const [studentSummary, setStudentSummary] = useState<AttendanceSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -57,10 +59,16 @@ export function AttendancePage({ userRole, userId }: AttendancePageProps) {
       setIsLoading(true);
       setError(null);
       
-      // Load all students
-      const allUsers = await userService.getAllUsers();
-      const students = allUsers.filter(u => u.role === 0); // Students only
-      setUsers(students);
+      if (userRole === 'Admin') {
+        // Admin can mark everyone's attendance
+        const allUsers = await userService.getAllUsers();
+        setUsers(allUsers);
+      } else if (userRole === 'Teacher') {
+        // Teachers use the new /api/attendance/students endpoint
+        // Backend ensures teachers can only mark student attendance
+        const studentList = await attendanceService.getStudents();
+        setStudents(studentList);
+      }
 
       // Load attendance for selected date
       const attendance = await attendanceService.getAttendanceByDate(selectedDate);
@@ -105,7 +113,11 @@ export function AttendancePage({ userRole, userId }: AttendancePageProps) {
   const handleBulkMark = async (status: number) => {
     try {
       setIsSaving(true);
-      const attendances = users.map(user => ({
+      
+      // Get the appropriate list based on user role
+      const userList = userRole === 'Admin' ? users : students;
+      
+      const attendances = userList.map(user => ({
         userId: user.id,
         status: status,
       }));
@@ -259,20 +271,21 @@ export function AttendancePage({ userRole, userId }: AttendancePageProps) {
           <input
             type="date"
             value={selectedDate}
+            max={maxDate}
             onChange={(e) => setSelectedDate(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
           />
           <button
             onClick={() => handleBulkMark(1)}
             disabled={isSaving}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all disabled:opacity-50"
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
           >
             Mark All Present
           </button>
           <button
             onClick={() => handleBulkMark(0)}
             disabled={isSaving}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all disabled:opacity-50"
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
           >
             Mark All Absent
           </button>
@@ -290,9 +303,9 @@ export function AttendancePage({ userRole, userId }: AttendancePageProps) {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           <div className="flex items-center gap-2 mb-2">
             <Users className="w-5 h-5 text-blue-600" />
-            <span className="text-sm text-gray-600">Total Students</span>
+            <span className="text-sm text-gray-600">{userRole === 'Admin' ? 'Total Users' : 'Total Students'}</span>
           </div>
-          <p className="text-2xl text-gray-900">{users.length}</p>
+          <p className="text-2xl text-gray-900">{userRole === 'Admin' ? users.length : students.length}</p>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           <div className="flex items-center gap-2 mb-2">
@@ -316,28 +329,30 @@ export function AttendancePage({ userRole, userId }: AttendancePageProps) {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-4 text-left text-sm text-gray-700">Student Name</th>
-                <th className="px-6 py-4 text-left text-sm text-gray-700">Email</th>
+                <th className="px-6 py-4 text-left text-sm text-gray-700">{userRole === 'Admin' ? 'Name' : 'Student Name'}</th>
                 <th className="px-6 py-4 text-left text-sm text-gray-700">Roll Number</th>
+                <th className="px-6 py-4 text-left text-sm text-gray-700">Room Number</th>
                 <th className="px-6 py-4 text-center text-sm text-gray-700">Attendance</th>
                 <th className="px-6 py-4 text-center text-sm text-gray-700">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {users.map((student) => {
+              {(userRole === 'Admin' ? users : students).map((student) => {
                 const status = getAttendanceStatus(student.id);
+                const firstName = 'firstName' in student ? student.firstName : '';
+                const lastName = 'lastName' in student ? student.lastName : '';
                 return (
                   <tr key={student.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-sm">
-                          {student.firstName.charAt(0)}
+                          {firstName.charAt(0)}
                         </div>
-                        <span>{student.firstName} {student.lastName}</span>
+                        <span>{firstName} {lastName}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{student.email}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">{student.rollNumber || '-'}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{student.roomNumber || '-'}</td>
                     <td className="px-6 py-4 text-center">
                       <div className="flex justify-center">
                         <AttendanceIcon status={status} />
@@ -347,7 +362,7 @@ export function AttendancePage({ userRole, userId }: AttendancePageProps) {
                       <button
                         onClick={() => handleToggleAttendance(student.id, status)}
                         disabled={isSaving}
-                        className={`px-4 py-2 rounded-lg text-sm transition-all disabled:opacity-50 ${
+                        className={`px-4 py-2 rounded-lg text-sm transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed ${
                           status === 1
                             ? 'bg-red-100 text-red-700 hover:bg-red-200'
                             : 'bg-green-100 text-green-700 hover:bg-green-200'

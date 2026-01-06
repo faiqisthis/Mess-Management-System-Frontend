@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { LoginPage } from './components/LoginPage';
 import { DashboardLayout } from './components/DashboardLayout';
 import { MenuPage } from './components/MenuPage';
@@ -7,6 +7,7 @@ import { AdminMenuManagement } from './components/AdminMenuManagement';
 import { BillingPage } from './components/BillingPage';
 import { UserManagement } from './components/UserManagement';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { AppProvider, useApp } from './contexts/AppContext';
 
 export type UserRole = 'Student' | 'Teacher' | 'Admin';
 
@@ -19,12 +20,12 @@ export interface User {
 }
 
 function AppContent() {
-  const { isAuthenticated, user, logout, isAdmin, isTeacher } = useAuth();
-  const [currentPage, setCurrentPage] = useState<string>('menu');
+  const { isAuthenticated, user, logout } = useAuth();
+  const { currentPage, navigateTo } = useApp();
 
   const handleLogout = () => {
     logout();
-    setCurrentPage('menu');
+    navigateTo('menu');
   };
 
   if (!isAuthenticated) {
@@ -60,7 +61,7 @@ function AppContent() {
     <DashboardLayout
       currentUser={currentUser}
       currentPage={currentPage}
-      onNavigate={setCurrentPage}
+      onNavigate={navigateTo}
       onLogout={handleLogout}
     >
       {renderPage()}
@@ -71,7 +72,9 @@ function AppContent() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <AppProvider>
+        <AppContent />
+      </AppProvider>
     </AuthProvider>
   );
 }

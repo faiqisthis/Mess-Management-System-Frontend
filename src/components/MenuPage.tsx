@@ -91,54 +91,11 @@ export function MenuPage() {
       setMenu(slots);
     } catch (err: any) {
       console.error('Error fetching menu:', err);
-      setError(err.message || 'Failed to load menu. Using sample data.');
-      // Fallback to sample data
-      setMenu(getSampleMenu());
+      setError(err.message || 'Failed to load menu.');
+      setMenu([]);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const getSampleMenu = (): MealSlot[] => {
-    return [
-      {
-        time: '7:00 AM - 9:00 AM',
-        type: 'Breakfast',
-        icon: Coffee,
-        items: [
-          { id: '1', name: 'Idli Sambar', description: 'Steamed rice cakes with lentil soup', price: 80 },
-          { id: '2', name: 'Poha', description: 'Flattened rice with peanuts and spices', price: 60 },
-          { id: '3', name: 'Bread & Butter', description: 'Toasted bread with butter and jam', price: 50 },
-          { id: '4', name: 'Tea/Coffee', description: 'Hot beverages', price: 30 },
-        ],
-      },
-      {
-        time: '12:30 PM - 2:00 PM',
-        type: 'Lunch',
-        icon: Soup,
-        items: [
-          { id: '5', name: 'Rice', description: 'Steamed basmati rice', price: 40 },
-          { id: '6', name: 'Dal Tadka', description: 'Yellow lentils tempered with spices', price: 70 },
-          { id: '7', name: 'Paneer Butter Masala', description: 'Cottage cheese in creamy tomato gravy', price: 150 },
-          { id: '8', name: 'Mixed Vegetable', description: 'Seasonal vegetables curry', price: 90 },
-          { id: '9', name: 'Roti', description: 'Whole wheat flatbread', price: 15 },
-          { id: '10', name: 'Salad & Raita', description: 'Fresh salad and yogurt', price: 40 },
-        ],
-      },
-      {
-        time: '8:00 PM - 9:30 PM',
-        type: 'Dinner',
-        icon: Moon,
-        items: [
-          { id: '13', name: 'Rice', description: 'Steamed basmati rice', price: 40 },
-          { id: '14', name: 'Dal Makhani', description: 'Black lentils in creamy gravy', price: 100 },
-          { id: '15', name: 'Chicken Curry', description: 'Tender chicken in spiced gravy', price: 180 },
-          { id: '16', name: 'Aloo Gobi', description: 'Potato and cauliflower dry curry', price: 85 },
-          { id: '17', name: 'Chapati', description: 'Whole wheat flatbread', price: 15 },
-          { id: '18', name: 'Dessert', description: 'Gulab Jamun', price: 50 },
-        ],
-      },
-    ];
   };
 
   if (isLoading) {
@@ -159,14 +116,19 @@ export function MenuPage() {
         </h1>
         <p className="text-gray-600">{today}</p>
         {error && (
-          <div className="mt-2 text-sm text-amber-600">
+          <div className="mt-2 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
             {error}
           </div>
         )}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {menu.map((meal) => {
+      {menu.length === 0 ? (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
+          <p className="text-gray-500">No menu available for today. Please check back later.</p>
+        </div>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2">
+          {menu.map((meal) => {
           const Icon = meal.icon;
           const totalPrice = meal.items.reduce((sum, item) => sum + item.price, 0);
           return (
@@ -206,7 +168,8 @@ export function MenuPage() {
             </div>
           );
         })}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

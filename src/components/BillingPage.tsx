@@ -34,14 +34,18 @@ export function BillingPage({ userRole, userId }: BillingPageProps) {
         // Load student's bills
         const studentBills = await billingService.getUserBills(parseInt(userId));
         setBills(studentBills);
-      } else {
-        // Load all bills and users for admin
+      } else if (userRole === 'Admin') {
+        // Load all bills and users for admin only
         const [allBills, allUsers] = await Promise.all([
           billingService.getAllBills(),
           userService.getAllUsers(),
         ]);
         setBills(allBills);
         setUsers(allUsers.filter(u => u.role === 0)); // Students only
+      } else {
+        // Teachers don't have access to billing
+        setError('You do not have permission to view billing information');
+        return;
       }
     } catch (err: any) {
       console.error('Error loading billing data:', err);
@@ -103,6 +107,25 @@ export function BillingPage({ userRole, userId }: BillingPageProps) {
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-center h-64">
           <div className="text-gray-500">Loading billing data...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Teacher view - no access
+  if (userRole === 'Teacher') {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Billing
+          </h1>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
+          <XCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+          <h3 className="text-xl text-gray-900 mb-2">Access Restricted</h3>
+          <p className="text-gray-600">Teachers do not have access to billing information.</p>
+          <p className="text-sm text-gray-500 mt-2">Only students can view their bills and admins can manage billing.</p>
         </div>
       </div>
     );
@@ -252,7 +275,7 @@ export function BillingPage({ userRole, userId }: BillingPageProps) {
             <button
               onClick={handleGenerateBill}
               disabled={isGenerating}
-              className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50"
+              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
             >
               {isGenerating ? 'Generating...' : 'Generate Bill'}
             </button>
